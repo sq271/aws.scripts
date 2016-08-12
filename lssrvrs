@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# lssrvrs
+
+aws ec2 describe-instances \
+  --query "Reservations[].Instances[]
+           [State.Name,InstanceType,InstanceId,
+           Placement.AvailabilityZone,VpcId,
+           PublicIpAddress,SubnetId]" \
+  --output text
+

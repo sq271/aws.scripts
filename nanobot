@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# nanobot <start|stop|connect>
+
+srvrId=i-4cc915d8
+key=mydev
+user=root
+
+case $1 in
+    start)
+            aws ec2 start-instances --instance-ids $srvrId
+            aws ec2 wait instance-running --instance-ids $srvrId
+
+            srvrIP=$(aws ec2 describe-instances \
+                     --instance-id $srvrId \
+                     --query 'Reservations[].Instances[].PublicDnsName' \
+                     --output text)
+
+            ssh -i ~/.ssh/"$key".pem "$user"@$srvrIP
+            ;;
+    stop)
+            aws ec2 stop-instances --instance-ids $srvrId
+            ;;
+    connect)
+            srvrIP=$(aws ec2 describe-instances \
+                     --instance-id $srvrId \
+                     --query 'Reservations[].Instances[].PublicDnsName' \
+                     --output text)
+
+            ssh -i ~/.ssh/"$key".pem "$user"@$srvrIP
+            ;;
+    *)
+            printf 'usage: nanobot <start|stop|connect>'
+            ;;
+esac
+
+

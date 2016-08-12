@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# mkkeys <keyname>
+
+keyname=$1
+
+aws ec2 create-key-pair \
+  --key-name $keyname \
+  --query 'KeyMaterial'
+  --output text > ~/.ssh/"$keyname".pem
+
+chmod 400 ~/.ssh/"$keyname".pem
+

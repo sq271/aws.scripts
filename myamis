@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# myamis
+
+my_amis() {
+  local region_name="$1"
+  aws ec2 describe-images \
+    --owners self \
+    --region "$region_name" \
+    --query "Images[].[ImageId,Name][]" \
+    --output text     
+}
+
+my_amis us-west-2

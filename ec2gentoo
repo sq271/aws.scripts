@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# mkinstance
+
+ami=ami-c4f534a4
+type=t2.micro
+secgroup=<value>
+keyname=<value>
+
+
+ec2gentoo() {
+  aws ec2 run-instances \
+    --count 1 \
+    --image-id "$ami" \
+    --instance-type "$type" \
+    --security-groups "$secgroup" \
+    --key-name "$keyname" \
+    --query 'Instances[].InstanceId' \
+    --ouput text
+)
+
+ec2gentoo
+   
+

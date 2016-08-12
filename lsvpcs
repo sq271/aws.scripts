@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# lsvpcs
+
+lsvpcs() {
+  aws ec2 describe-vpcs \
+    --query "Vpcs[].[VpcId,CidrBlock,State]" \
+    --output text
+}
+
+lsvpcs
+

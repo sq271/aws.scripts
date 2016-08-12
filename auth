@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# auth <secgroupname> <vpcId>
+
+
+secgroupname=$1
+vpcId=$2
+
+groupId=$(aws ec2 create-security-group \
+          --group-name $secgroupname \
+          --description "$secgroupname" \
+          --vpc-id $vpcId \
+          --query 'GroupId' \
+          --output text)
+
+aws ec2 authorize-security-group-ingress \
+    --group-d $groupId \
+    --protocol tcp \
+    --port 22 \
+    --cidr 0.0.0.0/0
+
+aws ec2 create-key-pair \
+    --key-name $secgroupname \
+    --query 'KeyMaterial' \
+    --output text > ~/.ssh/"$secgroupname".pem
+
+chmod 400 ~/.ssh/"$secgroupname".pem

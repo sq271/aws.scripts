@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# mkvpc
+
+mk_vpc() {
+  aws ec2 create-vpc \
+    --cidr-block 10.0.0.0/28 \
+    --query 'Vpc[0].[VpcId,CidrBlock,State]' \
+    --output text
+}
+
+mk_vpc

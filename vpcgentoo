@@ -1,0 +1,92 @@
+#!/bin/sh
+
+# vpcgentoo
+
+## vars
+ami=ami-c4f534a4
+typ=t2.nano
+sg=devdploi
+ki=devdploi
+
+## mk vpc
+vpcId=$(aws ec2 create-vpc --cidr-block \
+       10.0.0.0/28 --query 'Vpc.VpcId' \
+       --output tex)
+
+
+## dns
+aws ec2 modify-vpc-attribute --vpc-id $vpcId \
+    --enable-dns-support "{\'Value\':true}"
+aws ec2 modify-vpc-attribute --vpc-id $vpcId \
+    --enable-dns-hostnames "{'Value\':true}"
+
+
+## gateway
+inetGateway=$(aws ec2 create-internet-gateway \
+                   --query 'InternetGateway.InternetGatewayId' \
+                   --ouput text)
+
+aws ec2 attach-internet-gateway \
+    --internet-gateway-id $inetGateway \
+    --vpc-id $vpcId
+
+
+## subnet
+subnetId=$(aws ec2 create-subnet --vpc-id $vpcId \
+            --cidr-block 10.0.0.0/28 --query 'Subnet.SubnetId' \
+            --output text)
+
+
+## route table
+routeTableId=$(aws ec2 create-route-table --vpc $vpcId 
+                --query 'RouteTable.RouteTableId' --output text)
+
+aws ec2 associate-route-table --route-table-id $routeTableId \
+    --subnet-id $subnetId
+
+aws ec2 create-route --route-table-id $routeTableId \
+    --destination-cidr-block 0.0.0.0/0 \
+    --gateway-id $internetGatewayId
+
+
+## sec group 
+secGroupId=$(aws ec2 create-security-group \
+                 --group-name my-sec-group \
+                 --description "my-sec-group" \ 
+                 --vpc-id $vpcId --query 'GroupId' \ 
+                 --output text)
+
+aws ec2 authorize-security-group-ingress 
+    --group-id $secGroupId \
+    --protocol tcp --port 22 
+    --cidr 0.0.0.0/0
+
+
+## mk keys
+aws ec2 create-key-pair \
+    --key-name $ki \
+    --query 'KeyMaterial' 
+    --output text > ~/.ssh/"$ki".pem
+
+chmod 400 ~/.ssh/"$ki".pem
+
+
+## launch instance
+instanceId=$(aws ec2 run-instances --image-id "$ami" --count 1 \
+             --instance-type "$typ" --key-name my-key \
+             --security-group-ids $securityGroupId \
+             --subnet-id $subnetId --associate-public-ip-address \
+             --query 'Instances[0].InstanceId' --output text)
+
+
+## waiter
+aws ec2 instance-running --instance-ids $instanceId
+
+# get ip
+instanceIP=$(aws ec2 describe-instances --instance-ids $instanceId \
+             --query 'Reservations[0].Instances[0].PublicDnsName' \
+             --output text)
+
+
+## ssh
+ssh -i ~/.ssh/my-key.pem root@$instanceIP

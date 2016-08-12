@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# nano
+
+# vars
+ami=ami-c4f534a4
+mech=t2.nano
+sg=mydev
+key=mydev
+
+
+# instance
+srvrId=$(aws ec2 run-instances \
+         --count 1 \
+         --image-id "$ami" \
+         --instance-type "$mech" \
+         --security-groups "$sg" \
+         --key-name "$key" \
+         --query 'Instances[0].InstanceId' \
+         --output text)
+
+
+# waiter
+aws ec2 wait instance-running --instance-ids $instanceId 
+
+
+# ssh
+srvrIP=$(aws ec2 describe-instances \
+         --instance-id $instanceId \
+         --query 'Reservations[0].Instances[].PublicDnsName' \
+         --output text)
+
+ssh -i ~/.ssh/"$key".pem root@$srvrIP
+

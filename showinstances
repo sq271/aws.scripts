@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# showinstances
+
+aws ec2 describe-instances --output table
+

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# showstatus
+
+aws ec2 describe-instances \
+    --query "Reservations[].Instances[].[
+             InstanceId,ImageId,VpcId,
+             SubnetId,State.Name,
+             PublicIpAddress,InstanceType,
+             Placement.AvailabilityZone]" \
+    --output text
+
+
